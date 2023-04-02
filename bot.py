@@ -2,12 +2,13 @@ from os import getenv
 from dotenv import load_dotenv
 from logging import basicConfig, getLogger, INFO
 from rich.logging import RichHandler
-from nomic.gpt4all import GPT4All
+from gpt4all import GPT4All
 from telebot import TeleBot, types
 load_dotenv()
 
 # .env
 token = getenv("TELEGRAM_BOT_ID")
+model_path = getenv("MODEL_PATH")
 
 # Logs
 basicConfig(format="%(message)s",
@@ -16,9 +17,21 @@ basicConfig(format="%(message)s",
             handlers=[RichHandler()])
 logger = getLogger("rich")
 
+# Configs
+config = dict(
+    threads=8,
+    temp=0.1,
+    top_k=40,
+    top_p=0.95,
+    repeat_last_n=64,
+    repeat_penalty=1.3,
+    n_predict=64,
+    ctx_size=1024
+)
+
 
 def Bot():
-    with GPT4All('gpt4all-lora-unfiltered-quantized') as gpt:
+    with GPT4All(model_path, config) as gpt:
         bot = TeleBot(token)
         logger.info("Bot started")
 
@@ -29,13 +42,13 @@ def Bot():
             logger.info(f"< [{chat}] Bot: {resp}")
 
         @bot.message_handler(func=lambda m: m.text.startswith('#bot '), content_types=['text'])
-        def handle_hashbot(message: types.Message):
+        def handle_hashtag(message: types.Message):
             chat = message.chat.title
             sender = message.from_user.username
             msg = message.text[5:]
             chatting(chat, sender, msg, message)
 
-        @bot.message_handler(func=lambda m: m.reply_to_message is not None and m.reply_to_message.from_user.id == bot.get_me().id, content_types=['text'])
+        @bot.message_handler(func=lambda m: m.reply_to_message and m.reply_to_message.from_user.id == bot.get_me().id, content_types=['text'])
         def handle_reply(message: types.Message):
             chat = message.chat.title
             sender = message.from_user.username
@@ -53,6 +66,7 @@ def Bot():
 
 if __name__ == '__main__':
     try:
+        logger.info("Starting...")
         Bot()
     except KeyboardInterrupt:
         logger.info("Killed by KeyboardInterrupt")
