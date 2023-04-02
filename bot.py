@@ -30,7 +30,7 @@ def Bot():
 
         @bot.message_handler(func=lambda m: m.text.startswith('#bot '), content_types=['text'])
         def handle_hashbot(message: types.Message):
-            chat = message.chat.username
+            chat = message.chat.title
             sender = message.from_user.username
             msg = message.text[5:]
             chatting(chat, sender, msg, message)
