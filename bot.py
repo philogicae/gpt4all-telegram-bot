@@ -37,7 +37,7 @@ def Bot():
 
         @bot.message_handler(func=lambda m: m.reply_to_message is not None and m.reply_to_message.from_user.id == bot.get_me().id, content_types=['text'])
         def handle_reply(message: types.Message):
-            chat = message.chat.username
+            chat = message.chat.title
             sender = message.from_user.username
             msg = message.text
             chatting(chat, sender, msg, message)
