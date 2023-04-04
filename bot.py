@@ -8,7 +8,7 @@ load_dotenv()
 
 # .env
 token = getenv("TELEGRAM_BOT_ID")
-model_path = getenv("MODEL_PATH")
+model_path = getenv("MODEL_PATH_1")
 
 # Logs
 basicConfig(format="%(message)s",
@@ -20,13 +20,14 @@ logger = getLogger("rich")
 # Configs
 config = dict(
     threads=8,
+    batch_size=3,
     temp=0.1,
     top_k=40,
     top_p=0.95,
     repeat_last_n=64,
     repeat_penalty=1.3,
     n_predict=64,
-    ctx_size=1024
+    ctx_size=512
 )
 
 
@@ -36,10 +37,10 @@ def Bot():
         logger.info("Bot started")
 
         def chatting(chat, sender, msg, reply_to):
-            logger.info(f"> [{chat}] {sender}: {msg}")
+            logger.info(f"[{chat if chat else 'Private'} | {sender}]: {msg}")
             resp = gpt.prompt(msg)
             bot.reply_to(reply_to, resp)
-            logger.info(f"< [{chat}] Bot: {resp}")
+            logger.info(f"[{chat if chat else 'Private'} | Bot]: {resp}")
 
         @bot.message_handler(func=lambda m: m.text.startswith('#bot '), content_types=['text'])
         def handle_hashtag(message: types.Message):
